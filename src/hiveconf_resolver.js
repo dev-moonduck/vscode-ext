@@ -1,9 +1,10 @@
 const vscode = require('vscode');
+const resolve = require('./resolver')
 
 const regexes = {
     set_syntax : /SET\s+(.*?)\s*=\s*(.*)/igm,
-    hiveconf : /\$\{hiveconf:(.*?)\}/g,
-    var_name : /[a-zA-Z_$][0-9a-z_$]/
+    var_def : /\$\{hiveconf:(.*?)\}/g,
+    var_name : /[a-zA-Z_$]{1}[0-9a-z_$]*/
 }
 
 function hiveconf_resolver(textEditor, edit, args) {
@@ -12,31 +13,18 @@ function hiveconf_resolver(textEditor, edit, args) {
         return; // No open text editor
     }
 
-    var selection = editor.selection;
-    var text = editor.document.getText(selection);
-    var required_vars = get_required_conf(text);
-    var var_map, missings, resolved;
     try {
-        var_map = get_vars(text);
-        missings = get_missing_var(var_map, required_vars);
-
-        if (missings.length) {
-            throw "Not defined vars : " + missings.join(", ");
-        }
-    
-        resolved = resolve(text, var_map, required_vars);
-        
-        textEditor.edit(editBuilder => {
-            editBuilder.replace(selection, resolved);
+        resolve(editor, {
+            var_extractor: get_required_conf,
+            value_extractor: get_vars
         });
     } catch(msg) {
         vscode.window.showInformationMessage(msg);
     }
 }
 
-//return var name with conf array (i.e : [['myVar', '${hiveconf:myVar}'], ...])
 function get_required_conf(text) {
-    const conf_regex = regexes.hiveconf;
+    const conf_regex = regexes.var_def;
     var varAndConf = [];
     var matched;
     while (matched = conf_regex.exec(text)) {
@@ -46,10 +34,11 @@ function get_required_conf(text) {
 }
 
 function get_vars(text) {
-    const var_regex = regexes.set_syntax
+    const var_regex = regexes.set_syntax;
     const lines = text.split(';');
     var result = {};
-    var matched, i, line, extracted;
+    var i, line, extracted;
+    
     for (i = 0; i < lines.length; i += 1) {
         line = lines[i];
         
@@ -69,28 +58,6 @@ function get_vars(text) {
             }
         }
     }
-    return result;
-}
-
-function get_missing_var(var_map, required_vars) {
-    var i;
-    var missings = [];
-    for (i = 0; i < required_vars.length; i += 1) {
-        if (!var_map[required_vars[i][1]]) {
-            missings.push(required_vars[i][1]);
-        }
-    }
-    return missings;
-}
-
-function resolve(text, var_map, required_vars) {
-    var result = text;
-    var i;
-
-    for (i = 0; i < required_vars.length; i += 1) {
-        result = result.replace(required_vars[i][0], var_map[required_vars[i][1]], 'g');
-    }
-    
     return result;
 }
 
