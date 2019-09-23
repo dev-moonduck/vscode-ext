@@ -33,7 +33,7 @@ function get_required_conf(text) {
     return varAndConf;
 }
 
-function get_vars(text) {
+function get_vars(text, required_vars) {
     const var_regex = regexes.set_syntax;
     const lines = text.split(';');
     var result = {};

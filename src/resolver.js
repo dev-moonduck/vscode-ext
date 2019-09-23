@@ -7,7 +7,7 @@ function run_resolve(editor, getter) {
     var var_values = getter.value_extractor
     var missings, resolved, var_map;
     
-    var_map = var_values.apply(var_values, [text])
+    var_map = var_values.apply(var_values, [text, required_vars])
     missings = get_missing_var(var_map, required_vars);
     
     if (missings.length) {
