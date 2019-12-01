@@ -1,8 +1,9 @@
 {
 	"name": "hql-support",
 	"displayName": "hql-support",
+	"publisher": "moonduck",
 	"description": "hive/spark query language supporter",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"engines": {
 		"vscode": "^1.36.0"
 	},
@@ -34,5 +35,9 @@
 		"mocha": "^6.1.4",
 		"typescript": "^3.3.1",
 		"vscode-test": "^1.2.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/dev-moonduck/vscode-ext.git"
 	}
 }
