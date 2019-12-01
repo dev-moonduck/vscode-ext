@@ -23,5 +23,15 @@ So you can validate and resolve hiveconf
 # Known issues
 
 # Release notes
-## 1.0.0
+## 0.0.1
 - Support hiveconf resolver
+## 0.0.2
+- [Issue](https://github.com/dev-moonduck/vscode-ext/issues/1) that doesn't ignore comment is fixed
+
+
+# TODO
+## hiveconf resolver
+- Get text editor content and resolve(Now you must select your statement)
+
+## Oozie parameter resolver
+- Resolve all brace to proper value

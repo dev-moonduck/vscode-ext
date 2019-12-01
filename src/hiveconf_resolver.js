@@ -4,7 +4,8 @@ const resolve = require('./resolver')
 const regexes = {
     set_syntax : /SET\s+(.*?)\s*=\s*(.*)/igm,
     var_def : /\$\{hiveconf:(.*?)\}/g,
-    var_name : /[a-zA-Z_$]{1}[0-9a-z_$]*/
+    var_name : /[a-zA-Z_$]{1}[0-9a-z_$]*/,
+    hiveql_one_line_comment : /(?<=^([^']|'[^']*')*)--.*/g   //comment but not between quote
 }
 
 function hiveconf_resolver(textEditor, edit, args) {
@@ -40,7 +41,7 @@ function get_vars(text, required_vars) {
     var i, line, extracted;
     
     for (i = 0; i < lines.length; i += 1) {
-        line = lines[i];
+        line = remove_comment(lines[i]);
         
         var_regex.lastIndex = 0;
         extracted = var_regex.exec(line);
@@ -59,6 +60,10 @@ function get_vars(text, required_vars) {
         }
     }
     return result;
+}
+
+function remove_comment(line) {
+    return line.replace(regexes.hiveql_one_line_comment, '').trim()
 }
 
 function validate_name(var_name) {
