@@ -34,7 +34,7 @@ function get_value_map(text) {
     var i, line, extracted;
     
     for (i = 0; i < lines.length; i += 1) {
-        line = stringutils.remove_comment(lines[i]);
+        line = stringutils.remove_comment(lines[i]).trim();
         
         var_regex.lastIndex = 0;
         extracted = var_regex.exec(line);

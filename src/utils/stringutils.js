@@ -9,7 +9,7 @@ const regexes = {
 function remove_comment(line) {
     return line
         .replace(regexes.c_comment, '')
-        .replace(regexes.hiveql_one_line_comment, '').trim()
+        .replace(regexes.hiveql_one_line_comment, '')
 }
 
 module.exports = {
