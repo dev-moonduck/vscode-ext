@@ -5,7 +5,8 @@ const regexes = {
     set_syntax : /SET\s+(.*?)\s*=\s*(.*)/sigm,
     var_def : /\$\{hiveconf:(.*?)\}/g,
     var_name : /[a-zA-Z_$]{1}[0-9a-z_$]*/,
-    hiveql_one_line_comment : /(?<=^([^']|'[^']*')*)--.*/g   //comment but not between quote
+    hiveql_one_line_comment : /(?<=^([^']|'[^']*')*)--.*/g,   //comment but ignore if it is in quote
+    c_comment : /(?<=^([^']|'[^']*')*)\/\*(\*(?!\/)|[^*])*\*\//g //c style comment but ignore if it is in quote
 }
 
 function hiveconf_resolver(textEditor, edit, args) {
@@ -63,7 +64,9 @@ function get_vars(text, required_vars) {
 }
 
 function remove_comment(line) {
-    return line.replace(regexes.hiveql_one_line_comment, '').trim()
+    return line
+        .replace(regexes.c_comment, '')
+        .replace(regexes.hiveql_one_line_comment, '').trim()
 }
 
 function validate_name(var_name) {
