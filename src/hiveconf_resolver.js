@@ -19,10 +19,14 @@ function hiveconf_resolver(text) {
 
 function get_required_conf(text) {
     const conf_regex = regexes.var_def;
+    conf_regex.lastIndex = 0;
     var varAndConf = [];
     var matched;
     while (matched = conf_regex.exec(text)) {
-        varAndConf.push(matched);
+        if (matched.length !== 2) {
+            throw text + ' is invalid syntax'
+        }
+        varAndConf.push([matched[0], matched[1]]);
     }
     return varAndConf;
 }
