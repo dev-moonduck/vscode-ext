@@ -29,6 +29,7 @@ So you can validate and resolve hiveconf
 - [Issue](https://github.com/dev-moonduck/vscode-ext/issues/1) that doesn't ignore SQL comment(`-- my comment`) is fixed
 ## 0.0.3
 - [Issue](https://github.com/dev-moonduck/vscode-ext/issues/1) that doesn't ignore C-style block comment(`/* some mention */`) is fixed
+- [Issue](https://github.com/dev-moonduck/vscode-ext/issues/4) that doesn't work when it has multiline declaration is fixed
 
 # TODO
 ## hiveconf resolver
