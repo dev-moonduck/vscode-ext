@@ -1,27 +1,19 @@
 const vscode = require('vscode');
 const resolve = require('./resolver')
 
+// const regexes = require('./utils/regexes')
+const stringutils = require('./utils/stringutils')
+const name_validator = require('./utils/validators')
+
 const regexes = {
     set_syntax : /SET\s+(.*?)\s*=\s*(.*)/sigm,
-    var_def : /\$\{hiveconf:(.*?)\}/g,
-    var_name : /[a-zA-Z_$]{1}[0-9a-z_$]*/,
-    hiveql_one_line_comment : /(?<=^([^']|'[^']*')*)--.*/g,   //comment but ignore if it is in quote
-    c_comment : /(?<=^([^']|'[^']*')*)\/\*(\*(?!\/)|[^*])*\*\//g //c style comment but ignore if it is in quote
+    var_def : /\$\{hiveconf:(.*?)\}/g
 }
 
-function hiveconf_resolver(textEditor, edit, args) {
-    var editor = vscode.window.activeTextEditor;
-    if (!editor) {
-        return; // No open text editor
-    }
-
-    try {
-        resolve(editor, {
-            var_extractor: get_required_conf,
-            value_extractor: get_vars
-        });
-    } catch(msg) {
-        vscode.window.showInformationMessage(msg);
+function hiveconf_resolver(text) {
+    return {
+        'vars' : get_required_conf(text),
+        'value_map' : get_value_map(text)
     }
 }
 
@@ -35,19 +27,19 @@ function get_required_conf(text) {
     return varAndConf;
 }
 
-function get_vars(text, required_vars) {
+function get_value_map(text) {
     const var_regex = regexes.set_syntax;
     const lines = text.split(';');
     var result = {};
     var i, line, extracted;
     
     for (i = 0; i < lines.length; i += 1) {
-        line = remove_comment(lines[i]);
+        line = stringutils.remove_comment(lines[i]);
         
         var_regex.lastIndex = 0;
         extracted = var_regex.exec(line);
         if (extracted) {
-            if (!validate_name(extracted[1])) {
+            if (!name_validator.validate_name(extracted[1])) {
                 throw extracted[1] + ' is not valid name';
             }
             if (result[extracted[1]]) {
@@ -61,17 +53,6 @@ function get_vars(text, required_vars) {
         }
     }
     return result;
-}
-
-function remove_comment(line) {
-    return line
-        .replace(regexes.c_comment, '')
-        .replace(regexes.hiveql_one_line_comment, '').trim()
-}
-
-function validate_name(var_name) {
-    var result = regexes.var_name.test(var_name);
-    return result
 }
 
 module.exports = hiveconf_resolver;

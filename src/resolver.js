@@ -1,24 +1,48 @@
 const vscode = require('vscode');
 
-function run_resolve(editor, getter) {
-    var selection = editor.selection;
-    var text = editor.document.getText(selection);
-    var required_vars = getter.var_extractor.apply(getter.var_extractor, [text]);
-    var var_values = getter.value_extractor
-    var missings, resolved, var_map;
+const resolvers = {
+    'hive' : require('./hiveconf_resolver')
+}
+
+function write_result(editor, resolved_query) {
+    editor.edit(editBuilder => {
+        editBuilder.replace(editor.selection, resolved_query);
+    });
+}
+
+function run(editor, edit, resolver_type) {
+    //var editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        return; // No open text editor
+    }
+    try {
+        write_result(
+            editor,
+            run_resolver(get_query(editor), resolvers[resolver_type])
+        )
+    } catch(msg) {
+        vscode.window.showInformationMessage(msg);
+    }
+}
+
+function get_query(editor) {
+    return editor.document.getText(editor.selection);
+}
+
+function run_resolver(query, query_resolver) {    
+    var result = query_resolver.apply(query_resolver, [query])
+
+    var required_vars = result['vars']
+    var value_map = result['value_map']
+    var missings;
     
-    var_map = var_values.apply(var_values, [text, required_vars])
-    missings = get_missing_var(var_map, required_vars);
+    missings = get_missing_var(value_map, required_vars);
     
     if (missings.length) {
         throw "Not defined vars : " + missings.join(", ");
     }
     
-    resolved = resolve(text, var_map, required_vars);
-    
-    editor.edit(editBuilder => {
-        editBuilder.replace(selection, resolved);
-    });
+    return resolve(query, value_map, required_vars);
 }
 
 function get_missing_var(var_map, required_vars) {
@@ -43,4 +67,12 @@ function resolve(text, var_map, required_vars) {
     return result;
 }
 
-module.exports = run_resolve
+function wrapper(resolver_type) {
+    return function(editor, edit) {
+        run(editor, edit, resolver_type)
+    }
+}
+
+module.exports = {
+    'hive' : wrapper('hive')
+}
