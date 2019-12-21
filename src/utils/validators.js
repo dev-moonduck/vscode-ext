@@ -1,5 +1,5 @@
 const regexes = {
-    var_name : /[a-zA-Z_$]{1}[0-9a-z_$]*/
+    var_name : /^[a-zA-Z_]{1}[0-9a-zA-Z_]*$/
 }
 
 function validate_name(var_name) {
