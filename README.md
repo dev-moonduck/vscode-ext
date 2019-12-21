@@ -27,7 +27,8 @@ So you can validate and resolve hiveconf
 - Support hiveconf resolver
 ## 0.0.2
 - [Issue](https://github.com/dev-moonduck/vscode-ext/issues/1) that doesn't ignore comment is fixed
-
+## 0.0.3
+- [Issue](https://github.com/dev-moonduck/vscode-ext/issues/4) that doesn't work when it has multiline declaration is fixed
 
 # TODO
 ## hiveconf resolver

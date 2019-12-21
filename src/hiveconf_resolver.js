@@ -2,7 +2,7 @@ const vscode = require('vscode');
 const resolve = require('./resolver')
 
 const regexes = {
-    set_syntax : /SET\s+(.*?)\s*=\s*(.*)/igm,
+    set_syntax : /SET\s+(.*?)\s*=\s*(.*)/sigm,
     var_def : /\$\{hiveconf:(.*?)\}/g,
     var_name : /[a-zA-Z_$]{1}[0-9a-z_$]*/,
     hiveql_one_line_comment : /(?<=^([^']|'[^']*')*)--.*/g   //comment but not between quote
