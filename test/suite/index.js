@@ -5,7 +5,8 @@ const glob = require('glob');
 function run() {
 	// Create the mocha test
 	const mocha = new Mocha({
-		ui: 'tdd'
+		ui: 'tdd',
+		timeout: 5000
 	});
 	// Use any mocha API
 	mocha.useColors(true);
