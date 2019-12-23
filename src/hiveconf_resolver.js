@@ -1,74 +1,68 @@
-const vscode = require('vscode');
-const resolve = require('./resolver')
+const stringutils = require('./utils/stringutils')
+const name_validator = require('./utils/validators')
+
+const Resolver = require('./resolver')
+const autoBind = require('auto-bind');
 
 const regexes = {
-    set_syntax : /SET\s+(.*?)\s*=\s*(.*)/igm,
-    var_def : /\$\{hiveconf:(.*?)\}/g,
-    var_name : /[a-zA-Z_$]{1}[0-9a-z_$]*/,
-    hiveql_one_line_comment : /(?<=^([^']|'[^']*')*)--.*/g   //comment but not between quote
+    set_syntax : /SET\s+(.*?)\s*=\s*(.*)/sigm, //e.g) SET var_name = value
+    var_def : /\$\{hiveconf:(.*?)\}/g //e.g) ${hiveconf:var_name}
 }
 
-function hiveconf_resolver(textEditor, edit, args) {
-    var editor = vscode.window.activeTextEditor;
-    if (!editor) {
-        return; // No open text editor
+class HiveconfResolver extends Resolver {
+    constructor() {
+        super()
+        autoBind(this)
     }
 
-    try {
-        resolve(editor, {
-            var_extractor: get_required_conf,
-            value_extractor: get_vars
-        });
-    } catch(msg) {
-        vscode.window.showInformationMessage(msg);
-    }
-}
-
-function get_required_conf(text) {
-    const conf_regex = regexes.var_def;
-    var varAndConf = [];
-    var matched;
-    while (matched = conf_regex.exec(text)) {
-        varAndConf.push(matched);
-    }
-    return varAndConf;
-}
-
-function get_vars(text, required_vars) {
-    const var_regex = regexes.set_syntax;
-    const lines = text.split(';');
-    var result = {};
-    var i, line, extracted;
-    
-    for (i = 0; i < lines.length; i += 1) {
-        line = remove_comment(lines[i]);
-        
-        var_regex.lastIndex = 0;
-        extracted = var_regex.exec(line);
-        if (extracted) {
-            if (!validate_name(extracted[1])) {
-                throw extracted[1] + ' is not valid name';
-            }
-            if (result[extracted[1]]) {
-                throw 'You defined "' + extracted[1] + ' multiple times';
-            }
-        
-            result[extracted[1]] = extracted[2];
-            if (line.replace(extracted[0], '').trim() != '') {
-                throw 'Your SET syntax is not valid. Check the query around "SET ' + extracted[1] + '"';
-            }
+    collect_vars(query) {
+        return {
+            'vars' : this.get_required_conf(query),
+            'value_map' : this.get_value_map(query)
         }
     }
-    return result;
+
+    get_required_conf(query) {
+        const conf_regex = regexes.var_def;
+        conf_regex.lastIndex = 0; //Intenally, Regex change lastIndex every exec, So It should be initialized 
+        var varAndConf = [];
+        var matched;
+        while (matched = conf_regex.exec(query)) {
+            if (matched.length !== 2) {
+                throw query + ' is invalid syntax'
+            }
+            varAndConf.push([matched[0], matched[1]]);
+        }
+        return varAndConf;
+    }
+
+    get_value_map(query) {
+        const var_regex = regexes.set_syntax;
+        const lines = query.split(';');
+        var result = {};
+        var i, line, extracted;
+        
+        for (i = 0; i < lines.length; i += 1) {
+            line = stringutils.remove_comment(lines[i]).trim();
+            
+            var_regex.lastIndex = 0;
+            extracted = var_regex.exec(line);
+            if (extracted) {
+                if (!name_validator.validate_name(extracted[1])) {
+                    throw extracted[1] + ' is not valid name';
+                }
+                if (result[extracted[1]]) {
+                    throw 'You defined "' + extracted[1] + ' multiple times';
+                }
+            
+                result[extracted[1]] = extracted[2];
+                if (line.replace(extracted[0], '').trim() != '') {
+                    throw 'Your SET syntax is not valid. Check the query around "SET ' + extracted[1] + '"';
+                }
+            }
+        }
+        return result;
+    }
 }
 
-function remove_comment(line) {
-    return line.replace(regexes.hiveql_one_line_comment, '').trim()
-}
-
-function validate_name(var_name) {
-    var result = regexes.var_name.test(var_name);
-    return result
-}
-
-module.exports = hiveconf_resolver;
+module.exports = HiveconfResolver;

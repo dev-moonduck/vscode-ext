@@ -1,46 +1,77 @@
 const vscode = require('vscode');
+const autoBind = require('auto-bind');
 
-function run_resolve(editor, getter) {
-    var selection = editor.selection;
-    var text = editor.document.getText(selection);
-    var required_vars = getter.var_extractor.apply(getter.var_extractor, [text]);
-    var var_values = getter.value_extractor
-    var missings, resolved, var_map;
-    
-    var_map = var_values.apply(var_values, [text, required_vars])
-    missings = get_missing_var(var_map, required_vars);
-    
-    if (missings.length) {
-        throw "Not defined vars : " + missings.join(", ");
+class Resolver {
+    constructor() {
+        autoBind(this)
     }
-    
-    resolved = resolve(text, var_map, required_vars);
-    
-    editor.edit(editBuilder => {
-        editBuilder.replace(selection, resolved);
-    });
-}
 
-function get_missing_var(var_map, required_vars) {
-    var i;
-    var missings = [];
-    for (i = 0; i < required_vars.length; i += 1) {
-        if (!var_map[required_vars[i][1]]) {
-            missings.push(required_vars[i][1]);
+    run(editor, edit) {
+        //var editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            return; // No open text editor
+        }
+        try {
+            this.write_result(
+                editor,
+                this.resolve(this.get_query(editor))
+            )
+        } catch(msg) {
+            vscode.window.showInformationMessage(msg);
         }
     }
-    return missings;
-}
 
-function resolve(text, var_map, required_vars) {
-    var result = text;
-    var i;
-
-    for (i = 0; i < required_vars.length; i += 1) {
-        result = result.replace(required_vars[i][0], var_map[required_vars[i][1]], 'g');
+    write_result(editor, resolved_query) {
+        editor.edit(editBuilder => {
+            editBuilder.replace(editor.selection, resolved_query);
+        });
     }
+
+    get_query(editor) {
+        return editor.document.getText(editor.selection);
+    }
+
+    get_missing_var(var_map, required_vars) {
+        var i;
+        var missings = [];
+        for (i = 0; i < required_vars.length; i += 1) {
+            if (!var_map[required_vars[i][1]]) {
+                missings.push(required_vars[i][1]);
+            }
+        }
+        return missings;
+    }
+
+    resolve(query) {    
+        var result = this.collect_vars(query)
     
-    return result;
+        var required_vars = result['vars']
+        var value_map = result['value_map']
+        var missings;
+        
+        missings = this.get_missing_var(value_map, required_vars);
+        
+        if (missings.length) {
+            throw "Not defined vars : " + missings.join(", ");
+        }
+        
+        return this.replace_all(query, value_map, required_vars);
+    }
+
+    replace_all(text, var_map, required_vars) {
+        var result = text;
+        var i;
+    
+        for (i = 0; i < required_vars.length; i += 1) {
+            result = result.replace(required_vars[i][0], function() { return var_map[required_vars[i][1]] });
+        }
+        
+        return result;
+    }
+
+    collect_vars(query) {
+        throw 'Not implemented!'
+    }
 }
 
-module.exports = run_resolve
+module.exports = Resolver
