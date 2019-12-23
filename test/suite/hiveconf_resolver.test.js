@@ -4,9 +4,10 @@ const { before } = require('mocha');
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 const vscode = require('vscode');
-const hiveconf_resolver = require('../../src/hiveconf_resolver');
+const HiveconfResolver = require('../../src/hiveconf_resolver');
 
 suite('All functions in hiveconf_resolver test', () => {
+	const resolver = new HiveconfResolver()
 	before(() => {
 		vscode.window.showInformationMessage('Start all tests.');
 	});
@@ -22,9 +23,9 @@ suite('All functions in hiveconf_resolver test', () => {
 				'name_a' : '1'
 			}
 		};
-		var actual = hiveconf_resolver.apply(hiveconf_resolver, [query])
+		var actual = resolver.collect_vars(query);
 		
-		assert.deepStrictEqual(actual, expected, JSON.stringify(actual) + "///" + JSON.stringify(expected))
+		assert.deepStrictEqual(actual, expected);
 	});
 
 	test('should ignore all comments', () => {
@@ -46,8 +47,8 @@ suite('All functions in hiveconf_resolver test', () => {
 				'name_b' : `'Hi b! /*this is not comment*/'`
 			}
 		};
-		var actual = hiveconf_resolver.apply(hiveconf_resolver, [query])
-		assert.deepStrictEqual(actual, expected, actual)
+		var actual = resolver.collect_vars(query);
+		assert.deepStrictEqual(actual, expected);
 	});
 
 	test('should resolve statement even though there are more declaration than needed', () => {
@@ -63,8 +64,8 @@ suite('All functions in hiveconf_resolver test', () => {
 				'name_b' : `'b'`
 			}
 		};
-		var actual = hiveconf_resolver.apply(hiveconf_resolver, [query])
-		assert.deepStrictEqual(actual, expected, actual)
+		var actual = resolver.collect_vars(query);
+		assert.deepStrictEqual(actual, expected);
 	});
 
 	test('should throw error if the statement has wrong var name', () => {
@@ -73,7 +74,7 @@ suite('All functions in hiveconf_resolver test', () => {
 			select \${hiveconf:#wrong_name} from my_table
 		`;
 		assert.throws(() => {
-			hiveconf_resolver.apply(hiveconf_resolver, [query])
+			resolver.collect_vars(query)
 		})
 	});
 });
