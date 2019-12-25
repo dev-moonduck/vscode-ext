@@ -3,7 +3,7 @@
 	"displayName": "hql-support",
 	"publisher": "moonduck",
 	"description": "hive/spark query language supporter",
-	"version": "0.0.3",
+	"version": "0.0.6",
 	"engines": {
 		"vscode": "^1.38.0"
 	},
@@ -34,8 +34,10 @@
 		"glob": "^7.1.4",
 		"mocha": "^6.2.2",
 		"typescript": "^3.3.1",
-		"vscode-test": "^1.2.0",
-		"auto-bind": "*"
+		"vscode-test": "^1.2.0"
+	},
+	"dependencies": {
+		"auto-bind": "^4.0.0"
 	},
 	"repository": {
 		"type": "git",
