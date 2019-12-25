@@ -31,6 +31,8 @@ So you can validate and resolve hiveconf
 - [Issue](https://github.com/dev-moonduck/vscode-ext/issues/1) that doesn't ignore C-style block comment(`/* some mention */`) is fixed
 - [Issue](https://github.com/dev-moonduck/vscode-ext/issues/4) that doesn't work when it has multiline declaration is fixed
 - [Issue](https://github.com/dev-moonduck/vscode-ext/issues/8) that doesn't work when var value contains `$` sign
+## 0.0.6
+- [Issue](https://github.com/dev-moonduck/vscode-ext/issues/9) that doesn't work after extension's version upgrade to 0.0.3
 
 # TODO
 ## hiveconf resolver
